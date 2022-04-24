@@ -1,16 +1,19 @@
-const express = require('express')
-const auth = require('./routes/auth')
-const cors = require('cors')
-const app = express()
-const mongoose = require('mongoose')
-const dotenv = require('dotenv');
-dotenv.config({ path: './.env' });
-mongoose.connect('mongodb+srv://'+process.env.MONGOUSER+':'+process.env.MONGOPASSWORD+'@kraken.1bqex.mongodb.net/users?retryWrites=true&w=majority')
-app.use(cors())
-app.use(express.json())
-
-app.use("/auth",auth)
-
-app.listen(5000,()=>{
-	console.log("Server Up")
+require("dotenv").config();
+const express = require('express');
+const connectDB =require('./config/DB');
+const errorHandler = require('./middlewares/error');
+connectDB();
+const app = express();
+const PORT = process.env.PORT || 3000;
+app.use(express.json());
+app.use("/api/auth", require("./routes/auth"));
+app.use(errorHandler);
+const server = app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+})
+process.on("unhandledRejection", (err,promise) => {
+    console.log(`Error: ${err.message}`);
+    server.close(() => {
+        process.exit(1);
+    });
 })
